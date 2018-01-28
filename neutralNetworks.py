@@ -29,10 +29,20 @@ def derivatives_bipolarna(x):
 
 def simulation(entryHiddenLayer, listBoxValue, valueOfScale):
     #print listBoxValue
+    suma = 0
+    value = 0
+    valueTest = 0
+    valueTest1 = 0
+
+    value = valueOfScale * 0.8
+    valueTest = round(valueOfScale - value)
+    valueTest1 = (valueTest) + valueOfScale
+    value = round(value)
+
     popup = Tk.Toplevel(root)
     popup.grab_set()
     w = 220 # width for the Tk root
-    h = 400 # height for the Tk root
+    h = 410 # height for the Tk root
     ws = popup.winfo_screenwidth() 
     hs = popup.winfo_screenheight() 
     x = (ws/2) - (w/2)
@@ -44,7 +54,7 @@ def simulation(entryHiddenLayer, listBoxValue, valueOfScale):
     popup.title("Simulation")
     X = np.array([[]])
     y = np.array([])
-    for i in range(1,valueOfScale):
+    for i in range(1,int(value)):
         listTwo = []
         for j in range(0,18):
             if (j==0):
@@ -55,8 +65,8 @@ def simulation(entryHiddenLayer, listBoxValue, valueOfScale):
                 listTwo.append(worksheet.cell(i,j).value)
         X = np.append(X, listTwo)
         del listTwo[:]
-    y = np.array(y).reshape(valueOfScale-1,1)
-    X = np.array(X).reshape(valueOfScale-1,17)
+    y = np.array(y).reshape(int(value)-1,1)
+    X = np.array(X).reshape(int(value)-1,17)
 
     epoch = 3500 #Setting training iterations # Jedna iteracji w ktorej zawiera sie propagacja przednia i wsteczna
     lr=0.1 #Setting learning rate # Wielkosc wagi jest kontrolowana przez ten parametr 
@@ -117,78 +127,122 @@ def simulation(entryHiddenLayer, listBoxValue, valueOfScale):
 
         bout += np.sum(d_output, axis=0,keepdims=True) *lr # aktualizacja biasow na warstwie wyjsciowej
         wh += X.T.dot(d_hiddenlayer) *lr
-        bh += np.sum(d_hiddenlayer, axis=0,keepdims=True) *lr # aktualizacja biasow na warstwie ukrytej
-    drawEntries(popup, wh, bh, bout, wout, listBoxValue)
+        bh += np.sum(d_hiddenlayer, axis=0,keepdims=True) *lr # aktualizacja biasow na warstwie 
+        
 
-def drawEntries(self, wh, bh, bout, wout, listBoxValue):
+    I = np.array([[]])
+    J = np.array([])
+    for i in range(int(value+1),int(valueOfScale+1)):
+        listTwo = []
+        for j in range(0,18):
+            if (j==0):
+                #y = np.append(y, np.array([worksheet.cell(i,j).value]))
+                d = np.array([[worksheet.cell(i,j).value]])
+                J = np.append(J, d)
+            else:
+                listTwo.append(worksheet.cell(i,j).value)
+        I = np.append(I, listTwo)
+        del listTwo[:]
+    J = np.array(J).reshape(int(valueTest),1) # Y
+    I = np.array(I).reshape(int(valueTest),17) # X
+
+    for i in range(0,len(J)):
+        out = 0
+        a = np.dot(I[i], wh)
+        b = a + bh
+        if (listBoxValue == "Sinus"):
+            c = sinus(b)
+        elif (listBoxValue == "Sigmoidalna"):
+            c = sigmoid(b)
+        elif (listBoxValue == "Bipolarna"):
+            c = bipolarna(b)
+        d = np.dot(c, wout)
+        e = d + bout
+        if (listBoxValue == "Sigmoidalna"):
+            out = sigmoid(e)
+        elif (listBoxValue == "Sinus"):
+            out = sinus(e)
+        elif (listBoxValue == "Bipolarna"):
+            out = bipolarna(e)
+        if (J[i] - out > 0.40 or J[i] - out < -0.40):
+            suma += 1
+    suma1 = 0
+    suma1 = 1 - (suma / valueTest)
+    drawEntries(popup, wh, bh, bout, wout, listBoxValue, suma1)
+
+def drawEntries(self, wh, bh, bout, wout, listBoxValue, suma1):
+    
+    var = "Prawidlowe: " + str(float(format(suma1, '.2f'))) + " %"
+    label0 = Tk.Label(self, text=var)
+    label0.grid(row=0)
     label1 = Tk.Label(self, text="Parametr 1")
-    label1.grid(row=0)
+    label1.grid(row=1)
     entry1 = Tk.Entry(self)
-    entry1.grid(row=0, column=1)
+    entry1.grid(row=1, column=1)
     label2 = Tk.Label(self, text="Parametr 2")
-    label2.grid(row=1)
+    label2.grid(row=2)
     entry2 = Tk.Entry(self)
-    entry2.grid(row=1, column=1)
+    entry2.grid(row=2, column=1)
     label3 = Tk.Label(self, text="Parametr 3")
-    label3.grid(row=2)
+    label3.grid(row=3)
     entry3 = Tk.Entry(self)
-    entry3.grid(row=2, column=1)
+    entry3.grid(row=3, column=1)
     label4 = Tk.Label(self, text="Parametr 4")
-    label4.grid(row=3)
+    label4.grid(row=4)
     entry4 = Tk.Entry(self)
-    entry4.grid(row=3, column=1)
+    entry4.grid(row=4, column=1)
     label5 = Tk.Label(self, text="Parametr 5")
-    label5.grid(row=4)
+    label5.grid(row=5)
     entry5 = Tk.Entry(self)
-    entry5.grid(row=4, column=1)
+    entry5.grid(row=5, column=1)
     label6 = Tk.Label(self, text="Parametr 6")
-    label6.grid(row=5)
+    label6.grid(row=6)
     entry6 = Tk.Entry(self)
-    entry6.grid(row=5, column=1)
+    entry6.grid(row=6, column=1)
     label7 = Tk.Label(self, text="Parametr 7")
-    label7.grid(row=6)
+    label7.grid(row=7)
     entry7 = Tk.Entry(self)
-    entry7.grid(row=6, column=1)
+    entry7.grid(row=7, column=1)
     label8 = Tk.Label(self, text="Parametr 8")
-    label8.grid(row=7)
+    label8.grid(row=8)
     entry8 = Tk.Entry(self)
-    entry8.grid(row=7, column=1)
+    entry8.grid(row=8, column=1)
     label9 = Tk.Label(self, text="Parametr 9")
-    label9.grid(row=8)
+    label9.grid(row=9)
     entry9 = Tk.Entry(self)
-    entry9.grid(row=8, column=1)
+    entry9.grid(row=9, column=1)
     label10 = Tk.Label(self, text="Parametr 10")
-    label10.grid(row=9)
+    label10.grid(row=10)
     entry10 = Tk.Entry(self)
-    entry10.grid(row=9, column=1)
+    entry10.grid(row=10, column=1)
     label11 = Tk.Label(self, text="Parametr 11")
-    label11.grid(row=10)
+    label11.grid(row=11)
     entry11 = Tk.Entry(self)
-    entry11.grid(row=10, column=1)
+    entry11.grid(row=11, column=1)
     label12 = Tk.Label(self, text="Parametr 12")
-    label12.grid(row=11)
+    label12.grid(row=12)
     entry12 = Tk.Entry(self)
-    entry12.grid(row=11, column=1)
+    entry12.grid(row=12, column=1)
     label13 = Tk.Label(self, text="Parametr 13")
-    label13.grid(row=12)
+    label13.grid(row=13)
     entry13 = Tk.Entry(self)
-    entry13.grid(row=12, column=1)
+    entry13.grid(row=13, column=1)
     label14 = Tk.Label(self, text="Parametr 14")
-    label14.grid(row=13)
+    label14.grid(row=14)
     entry14 = Tk.Entry(self)
-    entry14.grid(row=13, column=1)
+    entry14.grid(row=14, column=1)
     label15 = Tk.Label(self, text="Parametr 15")
-    label15.grid(row=14)
+    label15.grid(row=15)
     entry15 = Tk.Entry(self)
-    entry15.grid(row=14, column=1)
+    entry15.grid(row=15, column=1)
     label16 = Tk.Label(self, text="Parametr 16")
-    label16.grid(row=15)
+    label16.grid(row=16)
     entry16 = Tk.Entry(self)
-    entry16.grid(row=15, column=1)
+    entry16.grid(row=16, column=1)
     label17 = Tk.Label(self, text="Parametr 17")
-    label17.grid(row=16)
+    label17.grid(row=17)
     entry17 = Tk.Entry(self)
-    entry17.grid(row=16, column=1)
+    entry17.grid(row=17, column=1)
     buttonSimulate = Tk.Button(self, text="Simulate",command= lambda: makeSimulation(entry1, entry2, entry3, entry4, entry5, entry6, entry7, entry8, entry9, entry10, entry11, entry12, entry13, entry14, entry15, entry16, entry17, wh, bh, bout, wout, listBoxValue))
     buttonSimulate.grid(column=1)
     
@@ -256,7 +310,7 @@ labelHiddenLayer = Tk.Label(root, text="Ilosc ukrytych warstw")
 chooseFunction = Tk.Label(root, text="Wybierz funkcje aktywacji")
 numberOfMatches = Tk.Label(root, text="Ilosc meczy do nauki")
 entryHiddenLayer = Tk.Entry(root)
-skala = Tk.Scale(from_=0, to=100, length=200, orient=Tk.HORIZONTAL)
+skala = Tk.Scale(from_=0, to=700, length=200, orient=Tk.HORIZONTAL)
 path = r"lion2.gif"
 photo = Tk.PhotoImage(file=path)
 image = Tk.Label(root, image=photo)
